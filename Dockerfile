@@ -57,4 +57,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Run the application
 # PORT can be overridden at runtime using -e PORT=<port>
+ENV PORT=7860
+EXPOSE 7860
 CMD ["./main"]
