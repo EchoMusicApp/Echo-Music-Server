@@ -1,4 +1,4 @@
-module github.com/MetrolistGroup/metroserver
+module https://github.com/EchoMusicApp/Echo-Music-Server
 
 go 1.25.6
 

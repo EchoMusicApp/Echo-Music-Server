@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	pb "github.com/MetrolistGroup/metroserver/proto"
+	pb "https://github.com/EchoMusicApp/Echo-Music-Server/proto"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -1,18 +1,33 @@
-# Metroserver
+# Echo Music Server
 
-A high performance Go WebSocket server for Metrolist's "Listen Together" feature.  
-Utilizes protobuf and gzip compression for fast and efficient communication between clients.
+A high-performance Go WebSocket server powering Metrolist's **Listen Together** feature — enabling real-time synchronized music playback across multiple clients. Built for speed and efficiency using Protocol Buffers (protobuf) and gzip compression.
 
-# Quickstart
+## Features
 
-## Locally
-You need to install go, protobuf, and protoc-gen-go
+- Real-time WebSocket communication between clients
+- Protobuf serialization for compact, fast message encoding
+- Gzip compression to minimize bandwidth usage
+- Health check endpoint for monitoring and orchestration
+- Configurable port via environment variable
+
+## Prerequisites
+
+Before running the server locally, ensure you have the following installed:
+
+- [Go](https://go.dev/dl/) (1.21+)
+- [Protocol Buffers compiler (`protoc`)](https://grpc.io/docs/protoc-installation/)
+- [`protoc-gen-go`](https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go) plugin
+
+## Quickstart
+
+### Local
 
 ```bash
-git clone https://github.com/MetrolistGroup/metroserver
+# Clone the repository
+git clone https://github.com/EchoMusicApp/Echo-Music-Server
 cd metroserver
 
-# Generate protobuf files (required first time)
+# Generate protobuf files (required on first run)
 chmod +x generate_proto.sh
 ./generate_proto.sh
 
@@ -22,31 +37,31 @@ go mod download
 # Build the server
 go build -o main .
 
-# Run on default port 8080
+# Run on the default port (8080)
 ./main
 
-# Run on custom port
+# Run on a custom port
 PORT=9000 ./main
 ```
 
-## Docker
+### Docker
 
 ```bash
 # Clone the repository
-git clone https://github.com/MetrolistGroup/metroserver
+git clone https://github.com/EchoMusicApp/Echo-Music-Server
 cd metroserver
 
-# Build locally
-docker build -t MetrolistGroup:latest .
+# Build the Docker image
+docker build -t metroserver:latest .
 
-# Run on port 8080
+# Run on the default port (8080)
 docker run -d \
   -p 8080:8080 \
   -e PORT=8080 \
   --name metroserver \
   metroserver:latest
 
-# Run on custom port
+# Run on a custom port
 docker run -d \
   -p 9000:9000 \
   -e PORT=9000 \
@@ -54,10 +69,9 @@ docker run -d \
   metroserver:latest
 ```
 
-## Docker Compose
+### Docker Compose
 
 ```yaml
----
 services:
   metroserver:
     image: ghcr.io/MetrolistGroup/metroserver:latest
@@ -81,3 +95,27 @@ services:
       start_period: 5s
     restart: unless-stopped
 ```
+
+## Configuration
+
+| Environment Variable | Default | Description          |
+|----------------------|---------|----------------------|
+| `PORT`               | `8080`  | Port the server listens on |
+
+## Health Check
+
+The server exposes a health endpoint at:
+
+```
+GET http://localhost:<PORT>/health
+```
+
+This is used by Docker and orchestration platforms to verify the server is running correctly.
+
+## License
+
+See [LICENSE](./LICENSE) for details.
+
+---
+
+> This project is a fork of [MetrolistGroup/metroserver](https://github.com/MetrolistGroup/metroserver).
