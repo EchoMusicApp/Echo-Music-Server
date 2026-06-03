@@ -8,8 +8,9 @@ OUT_DIR="./proto"
 
 if [ ! -f "$PROTO_DIR/listentogether.proto" ]; then
     echo "Missing proto file at $PROTO_DIR/listentogether.proto"
-    echo "Did you initialize submodules? Try: git submodule update --init --recursive"
-    exit 1
+    echo "Attempting to clone the proto repository from EchoMusicApp/Echo-Music-Proto..."
+    rm -rf "$PROTO_DIR"
+    git clone https://github.com/EchoMusicApp/Echo-Music-Proto.git "$PROTO_DIR"
 fi
 
 # Create output directory if it doesn't exist
