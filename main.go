@@ -2508,11 +2508,11 @@ func main() {
         <div class="stats-row">
             <div class="stat-item">
                 <div class="stat-label">Connected Users</div>
-                <div class="stat-value">{{ACTIVE_USERS}}</div>
+                <div class="stat-value" id="active-users">{{ACTIVE_USERS}}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Active Rooms</div>
-                <div class="stat-value">{{ACTIVE_ROOMS}}</div>
+                <div class="stat-value" id="active-rooms">{{ACTIVE_ROOMS}}</div>
             </div>
         </div>
 
@@ -2562,6 +2562,17 @@ func main() {
                 }, 2000);
             });
         }
+
+        function fetchStats() {
+            fetch('/stats')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    document.getElementById('active-users').textContent = data.active_users;
+                    document.getElementById('active-rooms').textContent = data.active_rooms;
+                })
+                .catch(function(err) { console.error('Error fetching stats:', err); });
+        }
+        setInterval(fetchStats, 3000);
     </script>
 </body>
 </html>`
@@ -2572,6 +2583,19 @@ func main() {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(html))
+	})
+
+	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		server.mu.RLock()
+		activeUsers := len(server.clients)
+		activeRooms := len(server.rooms)
+		server.mu.RUnlock()
+		json.NewEncoder(w).Encode(map[string]int{
+			"active_users": activeUsers,
+			"active_rooms": activeRooms,
+		})
 	})
 
 	http.HandleFunc("/assets/Echoicon.png", func(w http.ResponseWriter, r *http.Request) {
