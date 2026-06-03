@@ -1,12 +1,3 @@
----
-title: EchoMusic
-emoji: 🎧
-colorFrom: purple
-colorTo: indigo
-sdk: docker
-pinned: false
----
-
 <p align="center">
   <img src="assets/Echoicon.png" width="112" height="112" alt="Echo Music Logo" style="border-radius: 16px; object-fit: cover;" />
 </p>
