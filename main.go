@@ -2305,9 +2305,13 @@ func main() {
 			http.NotFound(w, r)
 			return
 		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<!DOCTYPE html>
+		
+		server.mu.RLock()
+		activeUsers := len(server.clients)
+		activeRooms := len(server.rooms)
+		server.mu.RUnlock()
+
+		html := `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2350,7 +2354,14 @@ func main() {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 32px;
+            padding: 36px 32px;
+            text-align: center;
+        }
+
+        .logo-container {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 20px auto;
         }
 
         h1 {
@@ -2366,11 +2377,40 @@ func main() {
             margin-bottom: 24px;
         }
 
+        /* Stats Row */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
         /* URL Field */
         .url-field {
             display: flex;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
+            text-align: left;
         }
 
         .url-input {
@@ -2419,6 +2459,7 @@ func main() {
             margin-bottom: 16px;
             border-top: 1px solid var(--border);
             padding-top: 24px;
+            text-align: left;
         }
 
         .steps {
@@ -2426,6 +2467,7 @@ func main() {
             flex-direction: column;
             gap: 12px;
             list-style: none;
+            text-align: left;
         }
 
         .step {
@@ -2453,8 +2495,22 @@ func main() {
 </head>
 <body>
     <div class="container">
+        <div class="logo-container">
+            <img src="/assets/logo.svg" alt="Logo" width="56" height="56" />
+        </div>
         <h1>Echo Music Server</h1>
         <p class="subtitle">Listen Together synchronization backend is active.</p>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-label">Connected Users</div>
+                <div class="stat-value">{{ACTIVE_USERS}}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Active Rooms</div>
+                <div class="stat-value">{{ACTIVE_ROOMS}}</div>
+            </div>
+        </div>
 
         <div class="url-field">
             <div class="url-input" id="ws-url">wss://.../ws</div>
@@ -2504,7 +2560,33 @@ func main() {
         }
     </script>
 </body>
-</html>`))
+</html>`
+
+		html = strings.ReplaceAll(html, "{{ACTIVE_USERS}}", fmt.Sprintf("%d", activeUsers))
+		html = strings.ReplaceAll(html, "{{ACTIVE_ROOMS}}", fmt.Sprintf("%d", activeRooms))
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(html))
+	})
+
+	http.HandleFunc("/assets/logo.svg", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+    <!-- Ambient Circle border -->
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#222222" stroke-width="2"/>
+    <!-- Headphone arch -->
+    <path d="M30 55 C 30 25, 70 25, 70 55" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+    <!-- Left ear cushion -->
+    <rect x="24" y="50" width="10" height="20" rx="4" fill="#ffffff"/>
+    <!-- Right ear cushion -->
+    <rect x="66" y="50" width="10" height="20" rx="4" fill="#ffffff"/>
+    <!-- Central Soundwave -->
+    <line x1="43" y1="52" x2="43" y2="68" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <line x1="50" y1="45" x2="50" y2="75" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <line x1="57" y1="52" x2="57" y2="68" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+</svg>`))
 	})
 	http.HandleFunc("/ws", server.handleWebSocket)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
