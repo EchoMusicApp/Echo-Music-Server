@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -2269,6 +2270,9 @@ func (c *Client) sendError(logger *zap.Logger, code, message string) {
 	})
 }
 
+//go:embed assets/Echoicon.png
+var echoIconBytes []byte
+
 func main() {
 	// Initialize logger
 	logger, err := zap.NewProduction()
@@ -2496,7 +2500,7 @@ func main() {
 <body>
     <div class="container">
         <div class="logo-container">
-            <img src="/assets/logo.svg" alt="Logo" width="56" height="56" />
+            <img src="/assets/Echoicon.png" alt="Logo" width="56" height="56" style="border-radius: 12px; object-fit: cover;" />
         </div>
         <h1>Echo Music Server</h1>
         <p class="subtitle">Listen Together synchronization backend is active.</p>
@@ -2570,23 +2574,10 @@ func main() {
 		w.Write([]byte(html))
 	})
 
-	http.HandleFunc("/assets/logo.svg", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "image/svg+xml")
+	http.HandleFunc("/assets/Echoicon.png", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
-    <!-- Ambient Circle border -->
-    <circle cx="50" cy="50" r="46" fill="none" stroke="#222222" stroke-width="2"/>
-    <!-- Headphone arch -->
-    <path d="M30 55 C 30 25, 70 25, 70 55" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-    <!-- Left ear cushion -->
-    <rect x="24" y="50" width="10" height="20" rx="4" fill="#ffffff"/>
-    <!-- Right ear cushion -->
-    <rect x="66" y="50" width="10" height="20" rx="4" fill="#ffffff"/>
-    <!-- Central Soundwave -->
-    <line x1="43" y1="52" x2="43" y2="68" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-    <line x1="50" y1="45" x2="50" y2="75" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
-    <line x1="57" y1="52" x2="57" y2="68" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-</svg>`))
+		w.Write(echoIconBytes)
 	})
 	http.HandleFunc("/ws", server.handleWebSocket)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
