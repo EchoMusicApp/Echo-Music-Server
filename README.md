@@ -1,3 +1,12 @@
+---
+title: EchoMusic
+emoji: 🎧
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Echo Music Server
 
 A high-performance Go WebSocket server powering Metrolist's **Listen Together** feature — enabling real-time synchronized music playback across multiple clients. Built for speed and efficiency using Protocol Buffers (protobuf) and gzip compression.
