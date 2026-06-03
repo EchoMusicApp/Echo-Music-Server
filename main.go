@@ -2310,12 +2310,9 @@ func main() {
 			return
 		}
 		
-		server.mu.RLock()
-		activeUsers := len(server.clients)
-		activeRooms := len(server.rooms)
-		server.mu.RUnlock()
-
-		html := `<!DOCTYPE html>
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2379,34 +2376,6 @@ func main() {
             font-size: 0.88rem;
             color: var(--text-muted);
             margin-bottom: 24px;
-        }
-
-        /* Stats Row */
-        .stats-row {
-            display: flex;
-            justify-content: center;
-            gap: 28px;
-            margin-bottom: 28px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text);
         }
 
         /* URL Field */
@@ -2505,17 +2474,6 @@ func main() {
         <h1>Echo Music Server</h1>
         <p class="subtitle">Listen Together synchronization backend is active.</p>
 
-        <div class="stats-row">
-            <div class="stat-item">
-                <div class="stat-label">Connected Users</div>
-                <div class="stat-value" id="active-users">{{ACTIVE_USERS}}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Active Rooms</div>
-                <div class="stat-value" id="active-rooms">{{ACTIVE_ROOMS}}</div>
-            </div>
-        </div>
-
         <div class="url-field">
             <div class="url-input" id="ws-url">wss://.../ws</div>
             <button class="copy-btn" id="copy-btn" onclick="copyUrl()">Copy URL</button>
@@ -2562,40 +2520,9 @@ func main() {
                 }, 2000);
             });
         }
-
-        function fetchStats() {
-            fetch('/stats')
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    document.getElementById('active-users').textContent = data.active_users;
-                    document.getElementById('active-rooms').textContent = data.active_rooms;
-                })
-                .catch(function(err) { console.error('Error fetching stats:', err); });
-        }
-        setInterval(fetchStats, 3000);
     </script>
 </body>
-</html>`
-
-		html = strings.ReplaceAll(html, "{{ACTIVE_USERS}}", fmt.Sprintf("%d", activeUsers))
-		html = strings.ReplaceAll(html, "{{ACTIVE_ROOMS}}", fmt.Sprintf("%d", activeRooms))
-
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(html))
-	})
-
-	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		server.mu.RLock()
-		activeUsers := len(server.clients)
-		activeRooms := len(server.rooms)
-		server.mu.RUnlock()
-		json.NewEncoder(w).Encode(map[string]int{
-			"active_users": activeUsers,
-			"active_rooms": activeRooms,
-		})
+</html>`))
 	})
 
 	http.HandleFunc("/assets/Echoicon.png", func(w http.ResponseWriter, r *http.Request) {
