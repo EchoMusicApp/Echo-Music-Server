@@ -2300,6 +2300,356 @@ func main() {
 		os.Exit(0)
 	}()
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Music Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080a11;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --primary: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.3);
+            --secondary: #06b6d4;
+            --secondary-glow: rgba(6, 182, 212, 0.3);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.12;
+            animation: float 25s infinite alternate;
+        }
+
+        .blob-1 {
+            width: 450px;
+            height: 450px;
+            background: var(--primary);
+            top: -10%;
+            left: -10%;
+        }
+
+        .blob-2 {
+            width: 550px;
+            height: 550px;
+            background: var(--secondary);
+            bottom: -15%;
+            right: -10%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, -80px) scale(1.15); }
+            100% { transform: translate(-30px, 30px) scale(0.9); }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 520px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 28px;
+            padding: 48px 40px;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+        }
+
+        /* Glow status indicator */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 28px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.05);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 1.6s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.85); opacity: 0.5; }
+            50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 14px var(--success); }
+            100% { transform: scale(0.85); opacity: 0.5; }
+        }
+
+        /* Typography */
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-main) 40%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 36px;
+        }
+
+        /* Equalizer visualizer */
+        .equalizer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 5px;
+            height: 36px;
+            margin-bottom: 36px;
+        }
+
+        .bar {
+            width: 4px;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 3px;
+            animation: bounce 0.8s ease-in-out infinite alternate;
+        }
+
+        .bar:nth-child(1) { height: 12px; animation-duration: 0.55s; }
+        .bar:nth-child(2) { height: 24px; animation-duration: 0.85s; }
+        .bar:nth-child(3) { height: 32px; animation-duration: 0.65s; }
+        .bar:nth-child(4) { height: 18px; animation-duration: 0.75s; }
+        .bar:nth-child(5) { height: 28px; animation-duration: 0.48s; }
+        .bar:nth-child(6) { height: 10px; animation-duration: 0.95s; }
+        .bar:nth-child(7) { height: 22px; animation-duration: 0.68s; }
+
+        @keyframes bounce {
+            0% { transform: scaleY(0.25); }
+            100% { transform: scaleY(1); }
+        }
+
+        /* Input / URL Copy Group */
+        .url-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 8px 8px 8px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            text-align: left;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .url-box:hover, .url-box:focus-within {
+            border-color: rgba(124, 58, 237, 0.4);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.08);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .url-label {
+            font-family: monospace;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 12px;
+            user-select: all;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            border: none;
+            color: white;
+            padding: 11px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Technical Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            border-top: 1px solid var(--card-border);
+            padding-top: 28px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.01);
+            border-radius: 12px;
+            padding: 14px 10px;
+            transition: background 0.3s ease;
+        }
+
+        .info-card:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .info-title {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .footer {
+            margin-top: 36px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            Online & Active
+        </div>
+
+        <h1>Echo Music</h1>
+        <p class="subtitle">Real-time WebSocket synchronization server powering the Listen Together feature.</p>
+
+        <div class="equalizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="url-box">
+            <span class="url-label" id="ws-url">wss://loading.../ws</span>
+            <button class="copy-btn" id="copy-btn" onclick="copyUrl()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy URL
+            </button>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-title">Protocol</div>
+                <div class="info-value">Protobuf</div>
+            </div>
+            <div class="info-card">
+                <div class="info-title">Compression</div>
+                <div class="info-value">Gzip</div>
+            </div>
+            <div class="info-card">
+                <div class="info-title">Secure</div>
+                <div class="info-value">WSS Required</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Echo Music Server &bull; Engineered with Go &bull; v1.0.0
+        </div>
+    </div>
+
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        const wsUrl = protocol + '//' + host + '/ws';
+        document.getElementById('ws-url').textContent = wsUrl;
+
+        function copyUrl() {
+            navigator.clipboard.writeText(wsUrl).then(function() {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+                btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                
+                setTimeout(function() {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>`))
+	})
 	http.HandleFunc("/ws", server.handleWebSocket)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
