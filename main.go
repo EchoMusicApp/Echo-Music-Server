@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/rand"
-	"embed"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
