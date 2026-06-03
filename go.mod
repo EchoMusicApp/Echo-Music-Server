@@ -1,4 +1,4 @@
-module https://github.com/EchoMusicApp/Echo-Music-Server
+module github.com/EchoMusicApp/Echo-Music-Server
 
 go 1.25.6
 
